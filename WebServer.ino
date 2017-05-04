@@ -210,6 +210,21 @@ void handle_root() {
     reply += F(" ");
     reply += F(BUILD_NOTES);
 
+    reply += F("<TR><TD>GIT version:<TD>");
+    reply += F(BUILD_GIT);
+
+    reply += F("<TR><TD>Plugin sets:<TD>");
+#ifdef PLUGIN_BUILD_DEV
+    reply += F("Normal, Testing, Development");
+#elif PLUGIN_BUILD_TESTING
+    reply += F("Normal, Testing");
+#elif PLUGIN_BUILD_NORMAL
+    reply += F("Normal");
+#else
+    reply += F("Minimal");
+#endif
+
+
     reply += F("<TR><TD>Core Version:<TD>");
     reply += ESP.getCoreVersion();
 
@@ -299,6 +314,9 @@ void handle_root() {
               break;
             case NODE_TYPE_ID_ARDUINO_EASY_STD:
               reply += F("Arduino Easy");
+              break;
+            case NODE_TYPE_ID_NANO_EASY_STD:
+              reply += F("Nano Easy");
               break;
           }
         reply += F("<TD>");
@@ -820,11 +838,11 @@ void handle_devices() {
         taskdevicevaluename[varNr].toCharArray(tmpString, 41);
         strcpy(ExtraTaskSettings.TaskDeviceValueNames[varNr], tmpString);
       }
-      
+
       TempEvent.TaskIndex = index - 1;
       if (ExtraTaskSettings.TaskDeviceValueNames[0][0] == 0) // if field set empty, reload defaults
         PluginCall(PLUGIN_GET_DEVICEVALUENAMES, &TempEvent, dummyString);
-      
+
       PluginCall(PLUGIN_WEBFORM_SAVE, &TempEvent, dummyString);
     }
     SaveTaskSettings(index - 1);
@@ -2690,4 +2708,3 @@ String URLEncode(const char* msg)
   }
   return encodedMsg;
 }
-

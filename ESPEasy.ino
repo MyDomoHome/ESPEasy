@@ -118,7 +118,7 @@
 #define ESP_PROJECT_PID           2015050101L
 #define ESP_EASY
 #define VERSION                             9
-#define BUILD                             145
+#define BUILD                             148
 #define BUILD_NOTES                        ""
 #define FEATURE_SPIFFS                  false
 
@@ -126,7 +126,8 @@
 #define NODE_TYPE_ID_ESP_EASYM_STD         17
 #define NODE_TYPE_ID_ESP_EASY32_STD        33
 #define NODE_TYPE_ID_ARDUINO_EASY_STD      65
-#define NODE_TYPE_ID                        NODE_TYPE_ID_ESP_EASY_STD
+#define NODE_TYPE_ID_NANO_EASY_STD         81
+#define NODE_TYPE_ID                       NODE_TYPE_ID_ESP_EASY_STD
 
 #define CPLUGIN_PROTOCOL_ADD                1
 #define CPLUGIN_PROTOCOL_TEMPLATE           2
@@ -186,6 +187,7 @@
 #define SENSOR_TYPE_SWITCH                 10
 #define SENSOR_TYPE_DIMMER                 11
 #define SENSOR_TYPE_LONG                   20
+#define SENSOR_TYPE_WIND                   21
 
 #define PLUGIN_INIT_ALL                     1
 #define PLUGIN_INIT                         2
@@ -217,6 +219,7 @@
 #define BOOT_CAUSE_COLD_BOOT                1
 #define BOOT_CAUSE_EXT_WD                  10
 
+#include "Version.h"
 #include <ESP8266WiFi.h>
 #include <DNSServer.h>
 #include <WiFiUdp.h>
@@ -346,7 +349,7 @@ struct SettingsStruct
   unsigned long ConnectionFailuresThreshold;
   int16_t       TimeZone;
   boolean       MQTTRetainFlag;
-  boolean       InitSPI; 
+  boolean       InitSPI;
 } Settings;
 
 struct ExtraTaskSettingsStruct
@@ -496,6 +499,9 @@ unsigned long flashWrites = 0;
 
 String eventBuffer = "";
 
+// Blynk_get prototype
+boolean Blynk_get(String command,float *data = NULL );
+
 /*********************************************************************************************\
  * SETUP
 \*********************************************************************************************/
@@ -611,7 +617,7 @@ void setup()
       for (byte x = 0; x < TASKS_MAX; x++)
         if (Settings.TaskDeviceTimer[x] !=0)
           timerSensor[x] = millis() + 30000 + (x * Settings.MessageDelay);
-      
+
       timer = millis() + 30000; // startup delay 30 sec
     }
     else
@@ -810,7 +816,7 @@ void runEach30Seconds()
     loopCounterMax = loopCounterLast;
 
   WifiCheck();
-  
+
 }
 
 
@@ -894,7 +900,7 @@ void SensorSendTask(byte TaskIndex)
     if (success)
     {
       for (byte varNr = 0; varNr < VARS_PER_TASK; varNr++)
-      {  
+      {
         if (ExtraTaskSettings.TaskDeviceFormula[varNr][0] != 0)
         {
           String spreValue = String(preValue[varNr]);
@@ -1013,6 +1019,6 @@ void backgroundtasks()
   WebServer.handleClient();
   MQTTclient.loop();
   statusLED(false);
+  checkUDP();
   yield();
 }
-
